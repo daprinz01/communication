@@ -23,7 +23,7 @@ func main() {
 	// Add handlers
 	api.HandleFunc("/send/email", controllers.SendEmail).Methods(http.MethodPost)
 	api.HandleFunc("/send/newsletter", controllers.SendNewsletter).Methods(http.MethodPost)
-
+	api.HandleFunc("/send/sms", controllers.SendSMS).Methods(http.MethodPost)
 	srv := &http.Server{
 		Handler:      r,
 		Addr:         ":8083",
