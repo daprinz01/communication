@@ -35,3 +35,9 @@ type OtpRequest struct {
 	Purpose     string `json:"purpose"`
 	Application string `json:"application"`
 }
+
+// SendSmsRequest is used to receive sms request
+type SendSmsRequest struct {
+	Phone   string `json:"phonenumber"`
+	Message string `json:"message"`
+}
