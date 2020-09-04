@@ -28,8 +28,8 @@ COPY --from=builder /opt/app/app /usr/local/bin/app
 ENV LOG_FILE_LOCATION=/usr/local/bin/log/communication.log ATTACHMENT_PATH=/usr/local/bin/attachments/ \
  CLIENT_ID=persianblack SMTP_HOST=us2.smtp.mailhostbox.com \
   SMTP_PORT=25 SMTP_USER=it@persianblack.com SMTP_PASSWORD=Princess4Daprinz \
-  TWILIO_SID=AC538c3b75eb51fa08498411ad65826747 TWILIO_AUTH_TOKEN=0ea6855c694ac5f9eec8887f9bcbda62 \
-  TWILIO_ENDPOINT=https://api.twilio.com//2010-04-01/Accounts/${TWILIO_SID}/Messages.json TWILIO_NUMBER=+13605030534
+  TWILIO_SID=ACef7ab5b4949c3240d16e8819a4d0274e TWILIO_AUTH_TOKEN=ee830a4109ea8b31262c01ff2528840b \
+  TWILIO_ENDPOINT=https://api.twilio.com/2010-04-01/Accounts/ACef7ab5b4949c3240d16e8819a4d0274e/Messages.json TWILIO_NUMBER=+13605030534
 
 
 CMD ["/usr/local/bin/app", "--help"]
