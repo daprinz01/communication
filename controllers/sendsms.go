@@ -3,47 +3,58 @@ package controllers
 import (
 	"communication/models"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
+
+	"github.com/labstack/echo/v4"
 )
 
 // SendSMS is used to send SMS messages
-func SendSMS(w http.ResponseWriter, r *http.Request) {
+func SendSMS(c echo.Context) (err error) {
 	log.Println("Send sms request received...")
-	var err error
+	// var err error
 	var errorResponse models.ErrorResponse
-	var request models.SendSmsRequest
-	decoder := json.NewDecoder(r.Body)
-	err = decoder.Decode(&request)
-	if err != nil {
-		log.Println("Invalid request, phonenumber must have a value")
+	request := new(models.SendSmsRequest)
+	if err = c.Bind(request); err != nil {
+		log.Println(fmt.Sprintf("Error occured while trying to marshal request: %s", err))
 		errorResponse.Errorcode = "03"
 		errorResponse.ErrorMessage = "Invalid request, phonenumber must have a value"
-
-		response, err := json.MarshalIndent(errorResponse, "", "")
-		if err != nil {
-			log.Println(err)
-		}
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(response)
-		return
+		c.JSON(http.StatusBadRequest, errorResponse)
+		return err
 	}
-	defer r.Body.Close()
+	// decoder := json.NewDecoder(r.Body)
+	// err = decoder.Decode(&request)
+	// if err != nil {
+	// 	log.Println("Invalid request, phonenumber must have a value")
+	// 	errorResponse.Errorcode = "03"
+	// 	errorResponse.ErrorMessage = "Invalid request, phonenumber must have a value"
+
+	// 	response, err := json.MarshalIndent(errorResponse, "", "")
+	// 	if err != nil {
+	// 		log.Println(err)
+	// 	}
+	// 	w.WriteHeader(http.StatusBadRequest)
+	// 	w.Write(response)
+	// 	return
+	// }
+	// defer r.Body.Close()
 	if len(request.Message) < 2 || request.Phone == "" {
 		log.Println("Invalid request, phonenumber must have a value")
 		errorResponse.Errorcode = "03"
 		errorResponse.ErrorMessage = "Invalid request, phonenumber must have a value"
 
-		response, err := json.MarshalIndent(errorResponse, "", "")
-		if err != nil {
-			log.Println(err)
-		}
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(response)
-		return
+		// response, err := json.MarshalIndent(errorResponse, "", "")
+		// if err != nil {
+		// 	log.Println(err)
+		// }
+		// w.WriteHeader(http.StatusBadRequest)
+		// w.Write(response)
+		c.JSON(http.StatusBadRequest, errorResponse)
+		return nil
 	}
 	go func() {
 		accountSid := os.Getenv("TWILIO_SID")
@@ -85,11 +96,12 @@ func SendSMS(w http.ResponseWriter, r *http.Request) {
 		ResponseDescription: "SMS received for sending...",
 		ResponseMessage:     nil,
 	}
-	response, err := json.MarshalIndent(successResponse, "", "")
-	if err != nil {
-		log.Println(err)
-	}
-	w.WriteHeader(http.StatusOK)
-	w.Write(response)
-	return
+	// response, err := json.MarshalIndent(successResponse, "", "")
+	// if err != nil {
+	// 	log.Println(err)
+	// }
+	// w.WriteHeader(http.StatusOK)
+	// w.Write(response)
+	c.JSON(http.StatusOK, successResponse)
+	return nil
 }

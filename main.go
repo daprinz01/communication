@@ -10,23 +10,26 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/labstack/echo-contrib/prometheus"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 func main() {
 	// Create Server and Route Handlers
-	r := mux.NewRouter()
-	api := r.PathPrefix("/api/v1").Subrouter()
-	api.Use(controllers.TrackResponseTime)
-	// Add middleware to run before request
-	api.Use(controllers.AuthorizationMiddleware)
-	// Add handlers
-	api.HandleFunc("/send/email", controllers.SendEmail).Methods(http.MethodPost)
-	api.HandleFunc("/send/newsletter", controllers.SendNewsletter).Methods(http.MethodPost)
-	api.HandleFunc("/send/sms", controllers.SendSMS).Methods(http.MethodPost)
+
+	// r := mux.NewRouter()
+	// api := r.PathPrefix("/api/v1").Subrouter()
+	// api.Use(controllers.TrackResponseTime)
+	// // Add middleware to run before request
+	// api.Use(controllers.AuthorizationMiddleware)
+	// // Add handlers
+	// api.HandleFunc("/send/email", controllers.SendEmail).Methods(http.MethodPost)
+	// api.HandleFunc("/send/newsletter", controllers.SendNewsletter).Methods(http.MethodPost)
+	// api.HandleFunc("/send/sms", controllers.SendSMS).Methods(http.MethodPost)
 	srv := &http.Server{
-		Handler:      r,
+
 		Addr:         ":8083",
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
@@ -43,11 +46,44 @@ func main() {
 		})
 		log.Println("Successfully initialized log file...")
 	}
+	e := echo.New()
+	e.Pre(middleware.RemoveTrailingSlash())
+	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+		// Format: "method=${method}, uri=${uri}, status=${status}\n",
+		Output: &lumberjack.Logger{
+			Filename:   logFileLocation,
+			MaxSize:    50, // megabytes
+			MaxBackups: 3,
+			MaxAge:     28,   //days
+			Compress:   true, // disabled by default
+		},
+	}))
+	e.Use(controllers.TrackResponseTime)
+	// e.Use(middleware.CSRF())
+	e.Use(middleware.Recover())
+	// Enable metrics middleware
+	p := prometheus.NewPrometheus("echo", nil)
+	p.Use(e)
+	// e.Use(middleware.JWT([]byte(os.Getenv("JWT_SECRET_KEY"))))
+	e.Use(middleware.KeyAuth(func(key string, c echo.Context) (bool, error) {
+		return key == os.Getenv("CLIENT_ID"), nil
+	}))
+
+	api := e.Group("/api/v1")
+
+	api.POST("/send/email", controllers.SendEmail)
+	api.POST("/send/newsletter", controllers.SendNewsletter)
+	api.POST("/send/sms", controllers.SendSMS)
+
+	// go func() {
+	// 	log.Println("Starting Server...")
+	// 	if err := srv.ListenAndServe(); err != nil {
+	// 		log.Println(err)
+	// 	}
+	// }()
 	go func() {
 		log.Println("Starting Server...")
-		if err := srv.ListenAndServe(); err != nil {
-			log.Println(err)
-		}
+		e.Logger.Fatal(e.StartServer(srv))
 	}()
 
 	// Graceful Shutdown

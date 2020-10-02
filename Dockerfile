@@ -25,7 +25,7 @@ RUN apk --no-cache update && \
       
 COPY --from=builder /opt/app/app /usr/local/bin/app
  
-# SMTP_USER=it@persianblack.com
+# SMTP_USER=it@persianblack.com SMTP_HOST=us2.smtp.mailhostbox.com 
 ENV LOG_FILE_LOCATION=/usr/local/bin/log/communication.log ATTACHMENT_PATH=/usr/local/bin/attachments/ \
  CLIENT_ID=persianblack SMTP_HOST=us2.smtp.mailhostbox.com \
   SMTP_PORT=25 SMTP_USER=it@persianblack.com SMTP_PASSWORD=Princess4Daprinz \
