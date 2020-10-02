@@ -18,6 +18,7 @@ func main() {
 	// Create Server and Route Handlers
 	r := mux.NewRouter()
 	api := r.PathPrefix("/api/v1").Subrouter()
+	api.Use(controllers.TrackResponseTime)
 	// Add middleware to run before request
 	api.Use(controllers.AuthorizationMiddleware)
 	// Add handlers
@@ -30,7 +31,6 @@ func main() {
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
-
 	// Configure Logging
 	logFileLocation := os.Getenv("LOG_FILE_LOCATION")
 	if logFileLocation != "" {
@@ -46,7 +46,7 @@ func main() {
 	go func() {
 		log.Println("Starting Server...")
 		if err := srv.ListenAndServe(); err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 	}()
 

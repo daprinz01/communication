@@ -205,11 +205,11 @@ func SendNewsletter(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println(fmt.Sprintf("Invalid port number passed: %s", err))
 		}
-		d := gomail.NewDialer(smtpHost, smtpPort, smtpUser, smtpPassword)
-		s, err := d.Dial()
-		if err != nil {
-			log.Println(err)
-		}
+		// d := gomail.NewDialer(smtpHost, smtpPort, smtpUser, smtpPassword)
+		// s, err := d.Dial()
+		// if err != nil {
+		// 	log.Println(err)
+		// }
 
 		m := gomail.NewMessage()
 
@@ -241,8 +241,14 @@ func SendNewsletter(w http.ResponseWriter, r *http.Request) {
 				m.Attach(fmt.Sprintf("%s%s", attachmentPath, request.AttachmentName[i].FileName))
 			}
 
-			if err := gomail.Send(s, m); err != nil {
-				log.Printf("Could not send Newsletter: %s to %s: %v", request.Subject, recipient.Email, err)
+			// if err := gomail.Send(s, m); err != nil {
+			// 	log.Printf("Could not send Newsletter: %s to %s: %v", request.Subject, recipient.Email, err)
+			// }
+			d := gomail.NewDialer(smtpHost, smtpPort, smtpUser, smtpPassword)
+
+			// Send the email to Bob, Cora and Dan.
+			if err := d.DialAndSend(m); err != nil {
+				log.Println(err)
 			}
 			m.Reset()
 		}

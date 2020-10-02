@@ -20,6 +20,7 @@ RUN apk --no-cache update && \
       apk --no-cache add ca-certificates && \
       rm -rf /var/cache/apk/* &&\
       mkdir /usr/local/bin/log && \
+      mkdir /usr/local/bin/attachments/ && \
       touch /usr/local/bin/log/communication.log
       
 COPY --from=builder /opt/app/app /usr/local/bin/app

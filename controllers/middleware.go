@@ -7,7 +7,53 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
+
+// TrackResponseTime is used to track the response time of api calls
+func TrackResponseTime(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Measure response time
+		start := time.Now()
+		next.ServeHTTP(w, r)
+		responseTime := time.Since(start)
+
+		// Write it to the log
+		log.Println(fmt.Sprintf("Request executed in %v", responseTime))
+
+		// Make sure to pass the error back!
+
+	})
+}
+
+// RecoverWrap helps to recover from a panic. Currently not in use simply because it doesn't work!
+// func RecoverWrap(h http.Handler) http.Handler {
+// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// 		var err error
+// 		defer func() {
+// 			r := recover()
+// 			if r != nil {
+// 				switch t := r.(type) {
+// 				case string:
+// 					err = errors.New(t)
+// 				case error:
+// 					err = t
+// 				default:
+// 					err = errors.New("Unknown error")
+// 				}
+// 				sendMeMail(err)
+// 				http.Error(w, err.Error(), http.StatusInternalServerError)
+// 			}
+// 		}()
+// 		h.ServeHTTP(w, r)
+// 	})
+// }
+
+// func sendMeMail(err error) {
+// 	// send mail
+// 	log.Println("Error in sendMeMail: ")
+// 	log.Println(err)
+// }
 
 // AuthorizationMiddleware is used to authorize API calls
 func AuthorizationMiddleware(next http.Handler) http.Handler {
