@@ -10,9 +10,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/labstack/echo-contrib/prometheus"
+	echoPrometheus "github.com/globocom/echo-prometheus"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
@@ -62,15 +63,13 @@ func main() {
 	// e.Use(middleware.CSRF())
 	e.Use(middleware.Recover())
 	// Enable metrics middleware
-	p := prometheus.NewPrometheus("echo", nil)
-	p.Use(e)
+	e.Use(echoPrometheus.MetricsMiddleware())
+	e.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
 	// e.Use(middleware.JWT([]byte(os.Getenv("JWT_SECRET_KEY"))))
-	e.Use(middleware.KeyAuth(func(key string, c echo.Context) (bool, error) {
+	api := e.Group("/api/v1")
+	api.Use(middleware.KeyAuth(func(key string, c echo.Context) (bool, error) {
 		return key == os.Getenv("CLIENT_ID"), nil
 	}))
-
-	api := e.Group("/api/v1")
-
 	api.POST("/send/email", controllers.SendEmail)
 	api.POST("/send/newsletter", controllers.SendNewsletter)
 	api.POST("/send/sms", controllers.SendSMS)
