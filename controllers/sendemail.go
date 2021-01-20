@@ -3,7 +3,6 @@ package controllers
 import (
 	"communication/models"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -12,30 +11,38 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/labstack/echo/v4"
 	"gopkg.in/gomail.v2"
 )
 
 // SendEmail is used to send email to customers
 // Supports To, CC, BCC to a maximum of 10
-func SendEmail(w http.ResponseWriter, r *http.Request) {
+func SendEmail(c echo.Context) (err error) {
 	log.Println("Send email request received...")
-	var err error
+
 	var errorResponse models.ErrorResponse
-	var request models.SendEmailRequest
-	decoder := json.NewDecoder(r.Body)
-	err = decoder.Decode(&request)
-	defer r.Body.Close()
+	request := new(models.SendEmailRequest)
+
+	if err = c.Bind(request); err != nil {
+		log.Println(fmt.Sprintf("Error occured while trying to marshal request: %s", err))
+		return
+	}
+
+	// decoder := json.NewDecoder(r.Body)
+	// err = decoder.Decode(&request)
+	// defer r.Body.Close()
 	if len(request.To) < 1 || request.From.Email == "" {
 		log.Println("Invalid request, From and To must have a value")
 		errorResponse.Errorcode = "03"
 		errorResponse.ErrorMessage = "Invalid request, From and To must have a value"
 
-		response, err := json.MarshalIndent(errorResponse, "", "")
-		if err != nil {
-			log.Println(err)
-		}
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write(response)
+		// response, err := json.MarshalIndent(errorResponse, "", "")
+		// if err != nil {
+		// 	log.Println(err)
+		// }
+		c.JSON(http.StatusBadRequest, errorResponse)
+		// w.WriteHeader(http.StatusUnauthorized)
+		// w.Write(response)
 		return
 	}
 	// Initialise gomail library
@@ -162,36 +169,42 @@ func SendEmail(w http.ResponseWriter, r *http.Request) {
 		ResponseMessage:     nil,
 	}
 	log.Println("Email sent successfully...")
-	response, err := json.MarshalIndent(successResponse, "", "")
-	if err != nil {
-		log.Println(err)
-	}
-	w.WriteHeader(http.StatusOK)
-	w.Write(response)
+	// response, err := json.MarshalIndent(successResponse, "", "")
+	// if err != nil {
+	// 	log.Println(err)
+	// }
+	// w.WriteHeader(http.StatusOK)
+	// w.Write(response)
+	c.JSON(http.StatusOK, successResponse)
 	return
 }
 
 // SendNewsletter is used to send email to customers
 // Supports unlimited To addresses. CC and BCC are not supported
-func SendNewsletter(w http.ResponseWriter, r *http.Request) {
+func SendNewsletter(c echo.Context) (err error) {
 	log.Println("Send newsletter request received...")
-	var err error
+	// var err error
 	var errorResponse models.ErrorResponse
-	var request models.SendEmailRequest
-	decoder := json.NewDecoder(r.Body)
-	err = decoder.Decode(&request)
-	defer r.Body.Close()
+	request := new(models.SendEmailRequest)
+	// decoder := json.NewDecoder(r.Body)
+	// err = decoder.Decode(&request)
+	// defer r.Body.Close()
+	if err = c.Bind(request); err != nil {
+		log.Println(fmt.Sprintf("Error occured while trying to marshal request: %s", err))
+		return
+	}
 	if len(request.To) < 1 || request.From.Email == "" {
 		log.Println("Invalid request, From and To must have a value")
 		errorResponse.Errorcode = "03"
 		errorResponse.ErrorMessage = "Invalid request, From and To must have a value"
 
-		response, err := json.MarshalIndent(errorResponse, "", "")
-		if err != nil {
-			log.Println(err)
-		}
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write(response)
+		// response, err := json.MarshalIndent(errorResponse, "", "")
+		// if err != nil {
+		// 	log.Println(err)
+		// }
+		// w.WriteHeader(http.StatusUnauthorized)
+		// w.Write(response)
+		c.JSON(http.StatusBadRequest, errorResponse)
 		return
 	}
 	go func() {
@@ -205,11 +218,11 @@ func SendNewsletter(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println(fmt.Sprintf("Invalid port number passed: %s", err))
 		}
-		d := gomail.NewDialer(smtpHost, smtpPort, smtpUser, smtpPassword)
-		s, err := d.Dial()
-		if err != nil {
-			log.Println(err)
-		}
+		// d := gomail.NewDialer(smtpHost, smtpPort, smtpUser, smtpPassword)
+		// s, err := d.Dial()
+		// if err != nil {
+		// 	log.Println(err)
+		// }
 
 		m := gomail.NewMessage()
 
@@ -241,8 +254,14 @@ func SendNewsletter(w http.ResponseWriter, r *http.Request) {
 				m.Attach(fmt.Sprintf("%s%s", attachmentPath, request.AttachmentName[i].FileName))
 			}
 
-			if err := gomail.Send(s, m); err != nil {
-				log.Printf("Could not send Newsletter: %s to %s: %v", request.Subject, recipient.Email, err)
+			// if err := gomail.Send(s, m); err != nil {
+			// 	log.Printf("Could not send Newsletter: %s to %s: %v", request.Subject, recipient.Email, err)
+			// }
+			d := gomail.NewDialer(smtpHost, smtpPort, smtpUser, smtpPassword)
+
+			// Send the email to Bob, Cora and Dan.
+			if err := d.DialAndSend(m); err != nil {
+				log.Println(err)
 			}
 			m.Reset()
 		}
@@ -253,60 +272,12 @@ func SendNewsletter(w http.ResponseWriter, r *http.Request) {
 		ResponseMessage:     nil,
 	}
 	log.Println("Email sent successfully...")
-	response, err := json.MarshalIndent(successResponse, "", "")
-	if err != nil {
-		log.Println(err)
-	}
-	w.WriteHeader(http.StatusOK)
-	w.Write(response)
+	// response, err := json.MarshalIndent(successResponse, "", "")
+	// if err != nil {
+	// 	log.Println(err)
+	// }
+	// w.WriteHeader(http.StatusOK)
+	// w.Write(response)
+	c.JSON(http.StatusOK, successResponse)
 	return
-}
-
-func SendOTPEmail(w http.ResponseWriter, r *http.Request) {
-	log.Println("Send newsletter request received...")
-	var err error
-	var errorResponse models.ErrorResponse
-	var request models.OtpRequest
-	decoder := json.NewDecoder(r.Body)
-	err = decoder.Decode(&request)
-	defer r.Body.Close()
-	if len(request.To) < 1 || request.From.Email == "" {
-		log.Println("Invalid request, From and To must have a value")
-		errorResponse.Errorcode = "03"
-		errorResponse.ErrorMessage = "Invalid request, From and To must have a value"
-
-		response, err := json.MarshalIndent(errorResponse, "", "")
-		if err != nil {
-			log.Println(err)
-		}
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write(response)
-		return
-	}
-	go func() {
-		var smtpHost, smtpPortKey, smtpUser, smtpPassword, attachmentPath string
-		smtpHost = os.Getenv("SMTP_HOST")
-		smtpPortKey = os.Getenv("SMTP_PORT")
-		smtpUser = os.Getenv("SMTP_USER")
-		smtpPassword = os.Getenv("SMTP_PASSWORD")
-		attachmentPath = os.Getenv("ATTACHMENT_PATH")
-		smtpPort, err := strconv.Atoi(smtpPortKey)
-		if err != nil {
-			log.Println(fmt.Sprintf("Invalid port number passed: %s", err))
-		}
-		d := gomail.NewDialer(smtpHost, smtpPort, smtpUser, smtpPassword)
-		s, err := d.Dial()
-		if err != nil {
-			log.Println(err)
-		}
-		message := fmt.Sprintf("<h5>Hey,</h5>")
-		m := gomail.NewMessage()
-		m.SetAddressHeader("From", smtpUser, request.Application)
-		m.SetHeader("To", request.Email)
-		m.SetHeader("Subject", fmt.Sprintf("%s OTP", request.Purpose))
-		m.SetBody("text/html", message)
-		if err := gomail.Send(s, m); err != nil {
-			log.Printf("Could not send otp for %s to %s: %v", request.Purpose, request.Email, err)
-		}
-	}()
 }
