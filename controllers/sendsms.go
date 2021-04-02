@@ -12,7 +12,7 @@ import (
 
 // SendSMS is used to send SMS messages
 func SendSMS(w http.ResponseWriter, r *http.Request) {
-	log.Println("Send newsletter request received...")
+	log.Println("Send sms request received...")
 	var err error
 	var errorResponse models.ErrorResponse
 	var request models.SendSmsRequest
@@ -70,6 +70,13 @@ func SendSMS(w http.ResponseWriter, r *http.Request) {
 				log.Println("Successfully sent sms")
 			}
 		} else {
+			var data map[string]interface{}
+			decoder := json.NewDecoder(resp.Body)
+			err := decoder.Decode(&data)
+			if err == nil {
+				log.Println(data)
+				log.Println("Error occured sms")
+			}
 			log.Println(resp.Status)
 		}
 	}()
