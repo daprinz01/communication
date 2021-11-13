@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"communication/models"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -10,6 +9,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"persianblack.com/communication/models"
 
 	"github.com/labstack/echo/v4"
 	"gopkg.in/gomail.v2"

@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"communication/models"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -9,6 +8,8 @@ import (
 	"net/url"
 	"os"
 	"strings"
+
+	"persianblack.com/communication/models"
 
 	"github.com/labstack/echo/v4"
 )
