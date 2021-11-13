@@ -1,7 +1,6 @@
 package main
 
 import (
-	"communication/controllers"
 	"context"
 	"log"
 	"net/http"
@@ -9,6 +8,8 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"persianblack.com/communication/controllers"
 
 	echoPrometheus "github.com/globocom/echo-prometheus"
 	"github.com/labstack/echo/v4"
@@ -74,12 +75,6 @@ func main() {
 	api.POST("/send/newsletter", controllers.SendNewsletter)
 	api.POST("/send/sms", controllers.SendSMS)
 
-	// go func() {
-	// 	log.Println("Starting Server...")
-	// 	if err := srv.ListenAndServe(); err != nil {
-	// 		log.Println(err)
-	// 	}
-	// }()
 	go func() {
 		log.Println("Starting Server...")
 		e.Logger.Fatal(e.StartServer(srv))
