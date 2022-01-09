@@ -6,10 +6,10 @@ docker-build-master:
   services:
     - docker:dind
   before_script:
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$DIGITAL_OCEAN_CONTAINER_REGISTRY_API_KEY" -p "$DIGITAL_OCEAN_CONTAINER_REGISTRY_API_KEY" $DIGITAL_OCEAN_REGISTRY
   script:
-    - docker build --pull -t "$CI_REGISTRY_IMAGE" .
-    - docker push "$CI_REGISTRY_IMAGE"
+    - docker build --pull -t "$DIGITAL_OCEAN_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME" .
+    - docker push "$DIGITAL_OCEAN_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME"
   only:
     - master
 
@@ -20,9 +20,9 @@ docker-build:
   services:
     - docker:dind
   before_script:
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$DIGITAL_OCEAN_CONTAINER_REGISTRY_API_KEY" -p "$DIGITAL_OCEAN_CONTAINER_REGISTRY_API_KEY" $DIGITAL_OCEAN_REGISTRY
   script:
-    - docker build --pull -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG" .
-    - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"
+    - docker build --pull -t "$DIGITAL_OCEAN_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_SLUG" .
+    - docker push "$DIGITAL_OCEAN_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_SLUG"
   except:
     - master
