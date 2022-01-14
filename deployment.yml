@@ -1,0 +1,63 @@
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: communication
+  namespace: default
+  labels:
+    app: devtroy
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+    persianblackid: persianblack.devtroy.communication.deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: communication
+  template:
+    metadata:
+      labels:
+        name: communication
+    spec:
+      volumes:
+        - name: persian-black-logs-communication
+          persistentVolumeClaim:
+            claimName: persian-black-logs
+      containers:
+        - name: communication
+          image: ghcr.io/persianblack/communicationengine:master
+          ports:
+            - containerPort: 8083
+              protocol: TCP
+          envFrom:
+            - secretRef:
+                name: communicationsecrets
+          resources:
+            limits:
+              cpu: 200m
+              memory: 15Mi
+            requests:
+              cpu: 100m
+              memory: 10Mi
+          volumeMounts:
+            - name: persian-black-logs-communication
+              mountPath: /usr/local/bin/log
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: Always
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      imagePullSecrets:
+        - name: githubregistrycredential
+      schedulerName: default-scheduler
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
+
