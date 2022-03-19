@@ -70,17 +70,6 @@ func main() {
 	e.Use(middleware.Recover())
 	// Enable metrics middleware
 	e.Use(echoPrometheus.MetricsMiddleware())
-	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
-		// Format: "method=${method}, uri=${uri}, status=${status}\n",
-		Output: &lumberjack.Logger{
-			Filename:   logFileLocation,
-			MaxSize:    50, // megabytes
-			MaxBackups: 3,
-			MaxAge:     28,   //days
-			Compress:   true, // disabled by default,
-		},
-		Format: "{\"@timestamp\":\"${time_rfc3339}\", \"uri\":\"${uri}\", \"remote_ip\":\"${remote_ip}\", \"host\":\"${host}\", \"id\":\"${id}\", \"method\":\"${method}\", \"user_agent\":\"${user_agent}\", \"status\":\"${status}\", \"error\":\"${error}\", \"latency\":\"${latency}\", \"latency_human\":\"${latency_human}\", \"bytes_in\":\"${bytes_in}\", \"bytes_out\":\"${bytes_out}\", \"message\":\"Echo http request logger\", \"microservice\": \"persian.black.communication.service\", \"level\":\"info\", \"user_agent\":\"${user_agent}\"}",
-	}))
 	e.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
 	// e.Use(middleware.JWT([]byte(os.Getenv("JWT_SECRET_KEY"))))
 	api := e.Group("/api/v1")
