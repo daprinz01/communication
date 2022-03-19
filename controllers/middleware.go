@@ -2,8 +2,9 @@ package controllers
 
 import (
 	"fmt"
-	"log"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/labstack/echo/v4"
 )
@@ -68,6 +69,7 @@ import (
 // TrackResponseTime is used to track the response time of api calls
 func TrackResponseTime(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
+		fields := log.Fields{"microservice": "persian.black.devtroy.communication.service", "function": "TrackResponseTime", "application": "communication"}
 		// Measure response time
 		start := time.Now()
 		if err := next(c); err != nil {
@@ -76,7 +78,7 @@ func TrackResponseTime(next echo.HandlerFunc) echo.HandlerFunc {
 		responseTime := time.Since(start)
 
 		// Write it to the log
-		log.Println(fmt.Sprintf("Request executed in %v", responseTime))
+		log.WithFields(fields).Info(fmt.Sprintf("Request executed in %v", responseTime))
 		return nil
 	}
 

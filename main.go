@@ -2,12 +2,13 @@ package main
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"persianblack.com/communication/controllers"
 
@@ -19,17 +20,7 @@ import (
 )
 
 func main() {
-	// Create Server and Route Handlers
 
-	// r := mux.NewRouter()
-	// api := r.PathPrefix("/api/v1").Subrouter()
-	// api.Use(controllers.TrackResponseTime)
-	// // Add middleware to run before request
-	// api.Use(controllers.AuthorizationMiddleware)
-	// // Add handlers
-	// api.HandleFunc("/send/email", controllers.SendEmail).Methods(http.MethodPost)
-	// api.HandleFunc("/send/newsletter", controllers.SendNewsletter).Methods(http.MethodPost)
-	// api.HandleFunc("/send/sms", controllers.SendSMS).Methods(http.MethodPost)
 	srv := &http.Server{
 
 		Addr:         ":8083",

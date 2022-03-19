@@ -3,11 +3,12 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 
 	"persianblack.com/communication/models"
 
@@ -16,44 +17,22 @@ import (
 
 // SendSMS is used to send SMS messages
 func SendSMS(c echo.Context) (err error) {
-	log.Println("Send sms request received...")
+	fields := log.Fields{"microservice": "persian.black.devtroy.communication.service", "function": "SendNewsletter", "application": "communication"}
+	log.WithFields(fields).Info("Send sms request received...")
 	// var err error
 	var errorResponse models.ErrorResponse
 	request := new(models.SendSmsRequest)
 	if err = c.Bind(request); err != nil {
-		log.Println(fmt.Sprintf("Error occured while trying to marshal request: %s", err))
 		errorResponse.Errorcode = "03"
 		errorResponse.ErrorMessage = "Invalid request, phonenumber must have a value"
+		log.WithFields(fields).WithError(err).WithFields(log.Fields{"responseCode": errorResponse.Errorcode, "responseDescription": errorResponse.ErrorMessage}).Error(fmt.Sprintf("Error occured while trying to marshal request: %s", err))
 		c.JSON(http.StatusBadRequest, errorResponse)
 		return err
 	}
-	// decoder := json.NewDecoder(r.Body)
-	// err = decoder.Decode(&request)
-	// if err != nil {
-	// 	log.Println("Invalid request, phonenumber must have a value")
-	// 	errorResponse.Errorcode = "03"
-	// 	errorResponse.ErrorMessage = "Invalid request, phonenumber must have a value"
-
-	// 	response, err := json.MarshalIndent(errorResponse, "", "")
-	// 	if err != nil {
-	// 		log.Println(err)
-	// 	}
-	// 	w.WriteHeader(http.StatusBadRequest)
-	// 	w.Write(response)
-	// 	return
-	// }
-	// defer r.Body.Close()
 	if len(request.Message) < 2 || request.Phone == "" {
-		log.Println("Invalid request, phonenumber must have a value")
 		errorResponse.Errorcode = "03"
 		errorResponse.ErrorMessage = "Invalid request, phonenumber must have a value"
-
-		// response, err := json.MarshalIndent(errorResponse, "", "")
-		// if err != nil {
-		// 	log.Println(err)
-		// }
-		// w.WriteHeader(http.StatusBadRequest)
-		// w.Write(response)
+		log.WithFields(fields).WithError(err).WithFields(log.Fields{"responseCode": errorResponse.Errorcode, "responseDescription": errorResponse.ErrorMessage}).Error("Invalid request, phonenumber must have a value")
 		c.JSON(http.StatusBadRequest, errorResponse)
 		return nil
 	}
@@ -78,18 +57,20 @@ func SendSMS(c echo.Context) (err error) {
 			decoder := json.NewDecoder(resp.Body)
 			err := decoder.Decode(&data)
 			if err == nil {
-				log.Println(data["sid"])
-				log.Println("Successfully sent sms")
+				log.WithFields(fields).Info(data["sid"])
+				log.WithFields(fields).Info("Successfully sent sms")
 			}
+			log.WithFields(fields).WithError(err).WithFields(log.Fields{"httpResponseCode": resp.StatusCode, "httpResponseStatusMessage": resp.Status}).Error("SMS not sent. Twilio response body: ", data)
 		} else {
 			var data map[string]interface{}
 			decoder := json.NewDecoder(resp.Body)
 			err := decoder.Decode(&data)
 			if err == nil {
-				log.Println(data)
-				log.Println("Error occured sms")
+				log.WithFields(fields).Error(data)
+				log.WithFields(fields).Error("Error occured sms")
 			}
 			log.Println(resp.Status)
+			log.WithFields(fields).WithError(err).WithFields(log.Fields{"httpResponseCode": resp.StatusCode, "httpResponseStatusMessage": resp.Status}).Error("Error occured while sending sms. Twilio response body: ", data)
 		}
 	}()
 	successResponse := &models.SuccessResponse{
@@ -97,12 +78,7 @@ func SendSMS(c echo.Context) (err error) {
 		ResponseDescription: "SMS received for sending...",
 		ResponseMessage:     nil,
 	}
-	// response, err := json.MarshalIndent(successResponse, "", "")
-	// if err != nil {
-	// 	log.Println(err)
-	// }
-	// w.WriteHeader(http.StatusOK)
-	// w.Write(response)
+	log.WithFields(fields).Info("Successfully sent SMS to phone number ", request.Phone)
 	c.JSON(http.StatusOK, successResponse)
 	return nil
 }
