@@ -28,7 +28,7 @@ func main() {
 			log.FieldKeyFunc: "function",
 		},
 	})
-	fields := log.Fields{"microservice": "persian.black.authengine.service"}
+	fields := log.Fields{"microservice": "persian.black.communication.service", "function": "main"}
 	log.WithFields(fields)
 	log.SetLevel(log.TraceLevel)
 
@@ -63,6 +63,7 @@ func main() {
 			MaxAge:     28,   //days
 			Compress:   true, // disabled by default
 		},
+		Format: "{\"@timestamp\":\"${time_rfc3339}\", \"uri\":\"${uri}\", \"remote_ip\":\"${remote_ip}\", \"host\":\"${host}\", \"id\":\"${id}\", \"method\":\"${method}\", \"user_agent\":\"${user_agent}\", \"status\":\"${status}\", \"error\":\"${error}\", \"latency\":\"${latency}\", \"latency_human\":\"${latency_human}\", \"bytes_in\":\"${bytes_in}\", \"bytes_out\":\"${bytes_out}\", \"message\":\"Echo http request logger\", \"microservice\": \"persian.black.communication.service\", \"level\":\"info\", \"user_agent\":\"${user_agent}\"}",
 	}))
 	e.Use(controllers.TrackResponseTime)
 	// e.Use(middleware.CSRF())
