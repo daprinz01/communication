@@ -101,7 +101,7 @@ func Authorize(next echo.HandlerFunc) echo.HandlerFunc {
 			errorResponse.ErrorMessage = "Unauthorized"
 			log.WithField("microservice", "persian.black.communication.service").WithFields(log.Fields{"responseCode": errorResponse.Errorcode, "responseDescription": errorResponse.ErrorMessage}).Error("Unauthorized client trying to access resource")
 			c.JSON(http.StatusUnauthorized, errorResponse)
-			return fmt.Errorf("Unauthorized clients")
+			return fmt.Errorf("UNAUTHORIZED CLIENT")
 		}
 		// Write it to the log
 		log.WithFields(fields).Info("Client is authorized")
