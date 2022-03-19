@@ -20,14 +20,18 @@ import (
 )
 
 func main() {
-
-	srv := &http.Server{
-
-		Addr:         ":8083",
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
-	}
 	// Configure Logging
+	log.SetFormatter(&log.JSONFormatter{
+		FieldMap: log.FieldMap{
+			log.FieldKeyTime: "@timestamp",
+			log.FieldKeyMsg:  "message",
+			log.FieldKeyFunc: "function",
+		},
+	})
+	fields := log.Fields{"microservice": "persian.black.authengine.service"}
+	log.WithFields(fields)
+	log.SetLevel(log.TraceLevel)
+
 	logFileLocation := os.Getenv("LOG_FILE_LOCATION")
 	if logFileLocation != "" {
 		log.SetOutput(&lumberjack.Logger{
@@ -37,8 +41,17 @@ func main() {
 			MaxAge:     28,   //days
 			Compress:   true, // disabled by default
 		})
-		log.Println("Successfully initialized log file...")
+
 	}
+
+	log.WithFields(fields).Info("Successfully initialized log file...")
+	srv := &http.Server{
+
+		Addr:         ":8083",
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+	}
+
 	e := echo.New()
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
