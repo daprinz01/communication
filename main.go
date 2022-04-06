@@ -73,7 +73,7 @@ func main() {
 	e.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
 	// e.Use(middleware.JWT([]byte(os.Getenv("JWT_SECRET_KEY"))))
 	api := e.Group("/api/v1")
-	api.Use(controllers.Authorize)
+	// api.Use(controllers.Authorize)
 	api.POST("/send/email", controllers.SendEmail)
 	api.POST("/send/newsletter", controllers.SendNewsletter)
 	api.POST("/send/sms", controllers.SendSMS)
