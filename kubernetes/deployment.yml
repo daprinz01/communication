@@ -34,10 +34,10 @@ spec:
                 name: communicationsecrets
           resources:
             limits:
-              cpu: 100m
+              cpu: 50m
               memory: 15Mi
             requests:
-              cpu: 90m
+              cpu: 45m
               memory: 10Mi
           volumeMounts:
             - name: persian-black-logs-communication
