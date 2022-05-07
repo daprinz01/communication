@@ -25,7 +25,7 @@ spec:
             claimName: helloprofile-logs
       containers:
         - name: communication
-          image: ghcr.io/persianblack/communicationengine:master
+          image: gcr.io/bionic-region-347614/communication:master
           ports:
             - containerPort: 8083
               protocol: TCP
@@ -49,8 +49,6 @@ spec:
       terminationGracePeriodSeconds: 30
       dnsPolicy: ClusterFirst
       securityContext: {}
-      imagePullSecrets:
-        - name: githubregistrycredential
       schedulerName: default-scheduler
   strategy:
     type: RollingUpdate
