@@ -1,23 +1,13 @@
----
 apiVersion: v1
 kind: Service
 metadata:
   name: communication
   namespace: default
-  labels:
-    app: devtroy
-  annotations:
-    persianblackid: persianblack.devtroy.communication.service
 spec:
   ports:
-    - name: port-8083
-      protocol: TCP
-      port: 8083
-      targetPort: 8083
+  - port: 80
+    protocol: TCP
+    targetPort: 8083
   selector:
-    name: communication
-  type: ClusterIP
-  sessionAffinity: None
-  ipFamilies:
-    - IPv4
-  ipFamilyPolicy: SingleStack
+    run: communication
+  type: NodePort
