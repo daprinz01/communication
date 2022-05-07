@@ -8,7 +8,7 @@ metadata:
     app: devtroy
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt
-    persianblackid: persianblack.devtroy.communication.ingress
+    persianblackid: helloprofile.communication.ingress
 spec:
   ingressClassName: nginx
   tls:

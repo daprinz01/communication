@@ -8,8 +8,7 @@ metadata:
   labels:
     app: devtroy
   annotations:
-    deployment.kubernetes.io/revision: "1"
-    persianblackid: persianblack.devtroy.communication.deployment
+    persianblackid: helloprofile.communication.deployment
 spec:
   replicas: 1
   selector:
@@ -23,7 +22,7 @@ spec:
       volumes:
         - name: persian-black-logs-communication
           persistentVolumeClaim:
-            claimName: persian-black-logs
+            claimName: helloprofile-logs
       containers:
         - name: communication
           image: ghcr.io/persianblack/communicationengine:master
