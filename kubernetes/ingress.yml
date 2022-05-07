@@ -7,6 +7,6 @@ metadata:
 spec:
   defaultBackend:
     service:
-      name: communication
+      name: communication-service
       port:
         number: 8083
