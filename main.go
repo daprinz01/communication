@@ -71,13 +71,13 @@ func main() {
 	// Enable metrics middleware
 	e.Use(echoPrometheus.MetricsMiddleware())
 	e.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
+	e.GET("/ping", controllers.Ping)
 	// e.Use(middleware.JWT([]byte(os.Getenv("JWT_SECRET_KEY"))))
 	api := e.Group("/api/v1")
 	// api.Use(controllers.Authorize)
 	api.POST("/send/email", controllers.SendEmail)
 	api.POST("/send/newsletter", controllers.SendNewsletter)
 	api.POST("/send/sms", controllers.SendSMS)
-	api.POST("/ping", controllers.Ping)
 
 	go func() {
 		log.Println("Starting Server...")
