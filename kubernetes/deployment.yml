@@ -25,7 +25,7 @@ spec:
             claimName: helloprofile-logs
       containers:
         - name: communication
-          image: gcr.io/bionic-region-347614/communication:master
+          image: gcr.io/bionic-region-347614/github.com/persianblack/communication
           ports:
             - containerPort: 8083
               protocol: TCP
