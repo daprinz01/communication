@@ -5,7 +5,7 @@ metadata:
   namespace: default
 spec:
   ports:
-  - port: 80
+  - port: 8083
     protocol: TCP
     targetPort: 8083
   selector:

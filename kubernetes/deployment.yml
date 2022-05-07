@@ -48,11 +48,11 @@ spec:
           readinessProbe:
             httpGet:
               path: /ping
-              port: 80
+              port: 8083
           livenessProbe:
             httpGet:
               path: /ping
-              port: 80     
+              port: 8083     
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
       dnsPolicy: ClusterFirst
