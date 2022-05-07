@@ -9,5 +9,5 @@ spec:
     protocol: TCP
     targetPort: 8083
   selector:
-    run: communication
+    name: communication
   type: NodePort
