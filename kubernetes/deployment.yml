@@ -34,10 +34,10 @@ spec:
                 name: communicationsecrets
           resources:
             limits:
-              cpu: 100m
+              cpu: 50m
               memory: 15Mi
             requests:
-              cpu: 90m
+              cpu: 45m
               memory: 10Mi
           volumeMounts:
             - name: persian-black-logs-communication
@@ -45,6 +45,14 @@ spec:
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
           imagePullPolicy: Always
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: 8083
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: 8083     
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
       dnsPolicy: ClusterFirst

@@ -77,6 +77,7 @@ func main() {
 	api.POST("/send/email", controllers.SendEmail)
 	api.POST("/send/newsletter", controllers.SendNewsletter)
 	api.POST("/send/sms", controllers.SendSMS)
+	api.POST("/ping", controllers.Ping)
 
 	go func() {
 		log.Println("Starting Server...")
