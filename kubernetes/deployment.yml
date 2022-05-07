@@ -8,8 +8,7 @@ metadata:
   labels:
     app: devtroy
   annotations:
-    deployment.kubernetes.io/revision: "1"
-    persianblackid: persianblack.devtroy.communication.deployment
+    persianblackid: helloprofile.communication.deployment
 spec:
   replicas: 1
   selector:
@@ -23,10 +22,10 @@ spec:
       volumes:
         - name: persian-black-logs-communication
           persistentVolumeClaim:
-            claimName: persian-black-logs
+            claimName: helloprofile-logs
       containers:
         - name: communication
-          image: ghcr.io/persianblack/communication:master
+          image: gcr.io/bionic-region-347614/github.com/persianblack/communication
           ports:
             - containerPort: 8083
               protocol: TCP
@@ -35,10 +34,10 @@ spec:
                 name: communicationsecrets
           resources:
             limits:
-              cpu: 200m
+              cpu: 100m
               memory: 15Mi
             requests:
-              cpu: 100m
+              cpu: 90m
               memory: 10Mi
           volumeMounts:
             - name: persian-black-logs-communication
@@ -50,8 +49,6 @@ spec:
       terminationGracePeriodSeconds: 30
       dnsPolicy: ClusterFirst
       securityContext: {}
-      imagePullSecrets:
-        - name: githubregistrycredential
       schedulerName: default-scheduler
   strategy:
     type: RollingUpdate
