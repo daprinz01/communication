@@ -2,12 +2,13 @@ package main
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"persianblack.com/communication/controllers"
 
@@ -19,24 +20,18 @@ import (
 )
 
 func main() {
-	// Create Server and Route Handlers
-
-	// r := mux.NewRouter()
-	// api := r.PathPrefix("/api/v1").Subrouter()
-	// api.Use(controllers.TrackResponseTime)
-	// // Add middleware to run before request
-	// api.Use(controllers.AuthorizationMiddleware)
-	// // Add handlers
-	// api.HandleFunc("/send/email", controllers.SendEmail).Methods(http.MethodPost)
-	// api.HandleFunc("/send/newsletter", controllers.SendNewsletter).Methods(http.MethodPost)
-	// api.HandleFunc("/send/sms", controllers.SendSMS).Methods(http.MethodPost)
-	srv := &http.Server{
-
-		Addr:         ":8083",
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
-	}
 	// Configure Logging
+	log.SetFormatter(&log.JSONFormatter{
+		FieldMap: log.FieldMap{
+			log.FieldKeyTime: "@timestamp",
+			log.FieldKeyMsg:  "message",
+			log.FieldKeyFunc: "function",
+		},
+	})
+	fields := log.Fields{"microservice": "persian.black.communication.service", "function": "main"}
+	log.WithFields(fields)
+	log.SetLevel(log.TraceLevel)
+
 	logFileLocation := os.Getenv("LOG_FILE_LOCATION")
 	if logFileLocation != "" {
 		log.SetOutput(&lumberjack.Logger{
@@ -46,8 +41,17 @@ func main() {
 			MaxAge:     28,   //days
 			Compress:   true, // disabled by default
 		})
-		log.Println("Successfully initialized log file...")
+
 	}
+
+	log.WithFields(fields).Info("Successfully initialized log file...")
+	srv := &http.Server{
+
+		Addr:         ":8083",
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+	}
+
 	e := echo.New()
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
@@ -59,6 +63,7 @@ func main() {
 			MaxAge:     28,   //days
 			Compress:   true, // disabled by default
 		},
+		Format: "{\"@timestamp\":\"${time_rfc3339}\", \"uri\":\"${uri}\", \"remote_ip\":\"${remote_ip}\", \"host\":\"${host}\", \"id\":\"${id}\", \"method\":\"${method}\", \"user_agent\":\"${user_agent}\", \"status\":\"${status}\", \"error\":\"${error}\", \"latency\":\"${latency}\", \"latency_human\":\"${latency_human}\", \"bytes_in\":\"${bytes_in}\", \"bytes_out\":\"${bytes_out}\", \"message\":\"Echo http request logger\", \"microservice\": \"persian.black.communication.service\", \"level\":\"info\", \"user_agent\":\"${user_agent}\"}",
 	}))
 	e.Use(controllers.TrackResponseTime)
 	// e.Use(middleware.CSRF())
@@ -68,9 +73,7 @@ func main() {
 	e.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
 	// e.Use(middleware.JWT([]byte(os.Getenv("JWT_SECRET_KEY"))))
 	api := e.Group("/api/v1")
-	api.Use(middleware.KeyAuth(func(key string, c echo.Context) (bool, error) {
-		return key == os.Getenv("CLIENT_ID"), nil
-	}))
+	// api.Use(controllers.Authorize)
 	api.POST("/send/email", controllers.SendEmail)
 	api.POST("/send/newsletter", controllers.SendNewsletter)
 	api.POST("/send/sms", controllers.SendSMS)

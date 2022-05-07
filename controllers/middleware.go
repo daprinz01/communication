@@ -2,8 +2,13 @@ package controllers
 
 import (
 	"fmt"
-	"log"
+	"net/http"
+	"os"
+	"strings"
 	"time"
+
+	log "github.com/sirupsen/logrus"
+	"persianblack.com/communication/models"
 
 	"github.com/labstack/echo/v4"
 )
@@ -68,6 +73,7 @@ import (
 // TrackResponseTime is used to track the response time of api calls
 func TrackResponseTime(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
+		fields := log.Fields{"microservice": "persian.black.devtroy.communication.service", "function": "TrackResponseTime", "application": "communication"}
 		// Measure response time
 		start := time.Now()
 		if err := next(c); err != nil {
@@ -76,7 +82,29 @@ func TrackResponseTime(next echo.HandlerFunc) echo.HandlerFunc {
 		responseTime := time.Since(start)
 
 		// Write it to the log
-		log.Println(fmt.Sprintf("Request executed in %v", responseTime))
+		log.WithFields(fields).Info(fmt.Sprintf("Request executed in %v", responseTime))
+		return nil
+	}
+
+}
+
+// Authorize is used to track the response time of api calls
+func Authorize(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		fields := log.Fields{"microservice": "persian.black.devtroy.communication.service", "function": "TrackResponseTime", "application": "communication"}
+		approvedClientID := os.Getenv("CLIENT_ID")
+		clientId := c.Request().Header.Get("Client_Id")
+		errorResponse := new(models.ErrorResponse)
+
+		if !strings.EqualFold(approvedClientID, clientId) {
+			errorResponse.Errorcode = "99"
+			errorResponse.ErrorMessage = "Unauthorized"
+			log.WithField("microservice", "persian.black.communication.service").WithFields(log.Fields{"responseCode": errorResponse.Errorcode, "responseDescription": errorResponse.ErrorMessage}).Error("Unauthorized client trying to access resource")
+			c.JSON(http.StatusUnauthorized, errorResponse)
+			return fmt.Errorf("UNAUTHORIZED CLIENT")
+		}
+		// Write it to the log
+		log.WithFields(fields).Info("Client is authorized")
 		return nil
 	}
 

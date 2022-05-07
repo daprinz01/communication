@@ -4,11 +4,12 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 
 	"persianblack.com/communication/models"
 
@@ -19,32 +20,30 @@ import (
 // SendEmail is used to send email to customers
 // Supports To, CC, BCC to a maximum of 10
 func SendEmail(c echo.Context) (err error) {
-	log.Println("Send email request received...")
+	fields := log.Fields{"microservice": "persian.black.devtroy.communication.service", "function": "SendEmail", "application": "communication"}
+
+	log.WithFields(fields).Info("Send email request received...")
 
 	var errorResponse models.ErrorResponse
 	request := new(models.SendEmailRequest)
 
 	if err = c.Bind(request); err != nil {
-		log.Println(fmt.Sprintf("Error occured while trying to marshal request: %s", err))
-		return
+		errorResponse.Errorcode = "03"
+		errorResponse.ErrorMessage = "Model validation failed"
+		log.WithFields(fields).WithError(err).WithFields(log.Fields{"responseCode": errorResponse.Errorcode, "responseDescription": errorResponse.ErrorMessage}).Error(fmt.Sprintf("Error occured while trying to marshal request: %s", err))
+		c.JSON(http.StatusBadRequest, errorResponse)
+		return err
 	}
 
 	// decoder := json.NewDecoder(r.Body)
 	// err = decoder.Decode(&request)
 	// defer r.Body.Close()
 	if len(request.To) < 1 || request.From.Email == "" {
-		log.Println("Invalid request, From and To must have a value")
 		errorResponse.Errorcode = "03"
 		errorResponse.ErrorMessage = "Invalid request, From and To must have a value"
-
-		// response, err := json.MarshalIndent(errorResponse, "", "")
-		// if err != nil {
-		// 	log.Println(err)
-		// }
+		log.WithFields(fields).WithError(err).WithFields(log.Fields{"responseCode": errorResponse.Errorcode, "responseDescription": errorResponse.ErrorMessage}).Error("Invalid request, From and To must have a value")
 		c.JSON(http.StatusBadRequest, errorResponse)
-		// w.WriteHeader(http.StatusUnauthorized)
-		// w.Write(response)
-		return
+		return err
 	}
 	// Initialise gomail library
 	m := gomail.NewMessage()
@@ -132,15 +131,15 @@ func SendEmail(c echo.Context) (err error) {
 		attachmentPath = os.Getenv("ATTACHMENT_PATH")
 		smtpPort, err := strconv.Atoi(smtpPortKey)
 		if err != nil {
-			log.Println(fmt.Sprintf("Invalid port number passed: %s", err))
+			log.WithFields(fields).WithError(err).Error(fmt.Sprintf("Invalid port number passed: %s", err))
 		}
 		for i := 0; i < len(request.AttachmentName); i++ {
 
-			log.Println(fmt.Sprintf("Attachment: %s was found....", request.AttachmentName[i].FileName))
+			log.WithFields(fields).Info(fmt.Sprintf("Attachment: %s was found....", request.AttachmentName[i].FileName))
 			file, err := os.Create(fmt.Sprintf("%s%s", attachmentPath, request.AttachmentName[i].FileName))
 
 			if err != nil {
-				log.Println(fmt.Sprintf("Error occured while creating file on host: %s", err))
+				log.WithFields(fields).WithError(err).Error(fmt.Sprintf("Error occured while creating file on host: %s", err))
 			}
 
 			defer file.Close()
@@ -148,34 +147,27 @@ func SendEmail(c echo.Context) (err error) {
 
 			fileSize, err := io.Copy(file, dec)
 			if err != nil {
-				log.Println(fmt.Sprintf("Error occured uploading attachment %s to server: %s", request.AttachmentName[i].FileName, err))
+				log.WithFields(fields).WithError(err).Error(fmt.Sprintf("Error occured uploading attachment %s to server: %s", request.AttachmentName[i].FileName, err))
 			}
 
-			log.Println(fmt.Sprintf("Attachment %s Uploaded successfully. Wrote %d bytes", request.AttachmentName[i].FileName, fileSize))
+			log.WithFields(fields).Info(fmt.Sprintf("Attachment %s Uploaded successfully. Wrote %d bytes", request.AttachmentName[i].FileName, fileSize))
 
 			m.Attach(fmt.Sprintf("%s%s", attachmentPath, request.AttachmentName[i].FileName))
 		}
 
 		d := gomail.NewDialer(smtpHost, smtpPort, smtpUser, smtpPassword)
 
-		// Send the email to Bob, Cora and Dan.
 		if err := d.DialAndSend(m); err != nil {
-			log.Println(err)
+			log.WithError(err).Error(err)
 		}
-		log.Println(fmt.Sprintf("Successfully sent email for %s", request.From))
+		log.WithFields(fields).Info(fmt.Sprintf("Successfully sent email for %s", request.From))
 	}()
 	successResponse := &models.SuccessResponse{
 		ResponseCode:        "00",
 		ResponseDescription: "Email received for sending...",
 		ResponseMessage:     nil,
 	}
-	log.Println("Email sent successfully...")
-	// response, err := json.MarshalIndent(successResponse, "", "")
-	// if err != nil {
-	// 	log.Println(err)
-	// }
-	// w.WriteHeader(http.StatusOK)
-	// w.Write(response)
+	log.WithFields(fields).Info("Email sent successfully...")
 	c.JSON(http.StatusOK, successResponse)
 	return
 }
@@ -183,7 +175,9 @@ func SendEmail(c echo.Context) (err error) {
 // SendNewsletter is used to send email to customers
 // Supports unlimited To addresses. CC and BCC are not supported
 func SendNewsletter(c echo.Context) (err error) {
-	log.Println("Send newsletter request received...")
+	fields := log.Fields{"microservice": "persian.black.devtroy.communication.service", "function": "SendNewsletter", "application": "communication"}
+
+	log.WithFields(fields).Info("Send newsletter request received...")
 	// var err error
 	var errorResponse models.ErrorResponse
 	request := new(models.SendEmailRequest)
@@ -191,20 +185,16 @@ func SendNewsletter(c echo.Context) (err error) {
 	// err = decoder.Decode(&request)
 	// defer r.Body.Close()
 	if err = c.Bind(request); err != nil {
-		log.Println(fmt.Sprintf("Error occured while trying to marshal request: %s", err))
-		return
+		errorResponse.Errorcode = "03"
+		errorResponse.ErrorMessage = "Model validation failed"
+		log.WithFields(fields).WithError(err).WithFields(log.Fields{"responseCode": errorResponse.Errorcode, "responseDescription": errorResponse.ErrorMessage}).Error(fmt.Sprintf("Error occured while trying to marshal request: %s", err))
+		c.JSON(http.StatusBadRequest, errorResponse)
+		return err
 	}
 	if len(request.To) < 1 || request.From.Email == "" {
-		log.Println("Invalid request, From and To must have a value")
 		errorResponse.Errorcode = "03"
 		errorResponse.ErrorMessage = "Invalid request, From and To must have a value"
-
-		// response, err := json.MarshalIndent(errorResponse, "", "")
-		// if err != nil {
-		// 	log.Println(err)
-		// }
-		// w.WriteHeader(http.StatusUnauthorized)
-		// w.Write(response)
+		log.WithFields(fields).WithError(err).WithFields(log.Fields{"responseCode": errorResponse.Errorcode, "responseDescription": errorResponse.ErrorMessage}).Error("Invalid request, From and To must have a value")
 		c.JSON(http.StatusBadRequest, errorResponse)
 		return
 	}
@@ -217,13 +207,8 @@ func SendNewsletter(c echo.Context) (err error) {
 		attachmentPath = os.Getenv("ATTACHMENT_PATH")
 		smtpPort, err := strconv.Atoi(smtpPortKey)
 		if err != nil {
-			log.Println(fmt.Sprintf("Invalid port number passed: %s", err))
+			log.WithFields(fields).WithError(err).Error(fmt.Sprintf("Invalid port number passed: %s", err))
 		}
-		// d := gomail.NewDialer(smtpHost, smtpPort, smtpUser, smtpPassword)
-		// s, err := d.Dial()
-		// if err != nil {
-		// 	log.Println(err)
-		// }
 
 		m := gomail.NewMessage()
 
@@ -235,11 +220,11 @@ func SendNewsletter(c echo.Context) (err error) {
 
 			for i := 0; i < len(request.AttachmentName); i++ {
 
-				log.Println(fmt.Sprintf("Attachment: %s was found....", request.AttachmentName[i].FileName))
+				log.WithFields(fields).Info(fmt.Sprintf("Attachment: %s was found....", request.AttachmentName[i].FileName))
 				file, err := os.Create(fmt.Sprintf("%s%s", attachmentPath, request.AttachmentName[i].FileName))
 
 				if err != nil {
-					log.Println(fmt.Sprintf("Error occured while creating file on host: %s", err))
+					log.WithFields(fields).WithError(err).Error(fmt.Sprintf("Error occured while creating file on host: %s", err))
 				}
 
 				defer file.Close()
@@ -247,20 +232,16 @@ func SendNewsletter(c echo.Context) (err error) {
 
 				fileSize, err := io.Copy(file, dec)
 				if err != nil {
-					log.Println(fmt.Sprintf("Error occured uploading attachment %s to server: %s", request.AttachmentName[i].FileName, err))
+					log.WithFields(fields).WithError(err).Error(fmt.Sprintf("Error occured uploading attachment %s to server: %s", request.AttachmentName[i].FileName, err))
 				}
 
-				log.Println(fmt.Sprintf("Attachment %s Uploaded successfully. Wrote %d bytes", request.AttachmentName[i].FileName, fileSize))
+				log.WithFields(fields).Info(fmt.Sprintf("Attachment %s Uploaded successfully. Wrote %d bytes", request.AttachmentName[i].FileName, fileSize))
 
 				m.Attach(fmt.Sprintf("%s%s", attachmentPath, request.AttachmentName[i].FileName))
 			}
 
-			// if err := gomail.Send(s, m); err != nil {
-			// 	log.Printf("Could not send Newsletter: %s to %s: %v", request.Subject, recipient.Email, err)
-			// }
 			d := gomail.NewDialer(smtpHost, smtpPort, smtpUser, smtpPassword)
 
-			// Send the email to Bob, Cora and Dan.
 			if err := d.DialAndSend(m); err != nil {
 				log.Println(err)
 			}
@@ -272,13 +253,7 @@ func SendNewsletter(c echo.Context) (err error) {
 		ResponseDescription: "Newsletter received for sending...",
 		ResponseMessage:     nil,
 	}
-	log.Println("Email sent successfully...")
-	// response, err := json.MarshalIndent(successResponse, "", "")
-	// if err != nil {
-	// 	log.Println(err)
-	// }
-	// w.WriteHeader(http.StatusOK)
-	// w.Write(response)
+	log.WithFields(fields).Info("Email sent successfully...")
 	c.JSON(http.StatusOK, successResponse)
 	return
 }
