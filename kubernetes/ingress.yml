@@ -13,10 +13,10 @@ spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - communication.test.devtroy.com
+        - communication.test.helloprofile.io
       secretName: communication-ingress
   rules:
-    - host: communication.test.devtroy.com
+    - host: communication.test.helloprofile.io
       http:
         paths:
           - pathType: ImplementationSpecific
