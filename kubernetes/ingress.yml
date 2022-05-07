@@ -1,27 +1,12 @@
----
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: communication
-  namespace: default
-  labels:
-    app: devtroy
+  name: communication-ingress
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt
-    persianblackid: helloprofile.communication.ingress
+    kubernetes.io/ingress.global-static-ip-name: "wecommunication-ip"
 spec:
-  ingressClassName: nginx
-  tls:
-    - hosts:
-        - communication.test.helloprofile.io
-      secretName: communication-ingress
-  rules:
-    - host: communication.test.helloprofile.io
-      http:
-        paths:
-          - pathType: ImplementationSpecific
-            backend:
-              service:
-                name: communication
-                port:
-                  number: 8083
+  defaultBackend:
+    service:
+      name: web
+      port:
+        number: 8080
