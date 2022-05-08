@@ -4,6 +4,7 @@ metadata:
   name: communication-ingress
   annotations:
     kubernetes.io/ingress.global-static-ip-name: "wecommunication-ip"
+    networking.gke.io/managed-certificates: managed-cert
 spec:
   defaultBackend:
     service:
