@@ -6,7 +6,7 @@ metadata:
   name: communication
   namespace: default
   labels:
-    app: devtroy
+    app: helloprofile
   annotations:
     persianblackid: helloprofile.communication.deployment
 spec:
@@ -35,10 +35,10 @@ spec:
           resources:
             limits:
               cpu: 50m
-              memory: 15Mi
+              memory: 150Mi
             requests:
               cpu: 45m
-              memory: 10Mi
+              memory: 100Mi
           volumeMounts:
             - name: persian-black-logs-communication
               mountPath: /var/local/bin/log
