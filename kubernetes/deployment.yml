@@ -41,7 +41,7 @@ spec:
               memory: 100Mi
           volumeMounts:
             - name: persian-black-logs-communication
-              mountPath: /var/local/bin/log
+              mountPath: /usr/local/bin/log
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
           imagePullPolicy: Always
