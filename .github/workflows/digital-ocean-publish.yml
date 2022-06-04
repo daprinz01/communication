@@ -1,0 +1,53 @@
+name: DigitalOcean Kubernetes Deployment
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - 'kubernetes/**'
+      - 'Dockerfile'
+      - '.github/workflows/**'
+
+jobs:
+
+  build:
+    name: Build, push, and deploy
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout develop
+      uses: actions/checkout@v2
+
+    # - name: Update SHA
+    #   run: echo $GITHUB_SHA > $GITHUB_WORKSPACE/site/_meta
+
+    - name: Build container image
+      run: docker build -t registry.digitalocean.com/helloprofile/communication:$(echo $GITHUB_SHA | head -c7) .
+
+    - name: Install doctl
+      uses: digitalocean/action-doctl@v2
+      with:
+        token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+    - name: Log in to DigitalOcean Container Registry with short-lived credentials
+      run: doctl registry login --expiry-seconds 600
+
+    - name: Push image to DigitalOcean Container Registry
+      run: docker push registry.digitalocean.com/helloprofile/communication:$(echo $GITHUB_SHA | head -c7)
+
+    - name: Update deployment file
+      run: TAG=$(echo $GITHUB_SHA | head -c7) && sed -i 's|<IMAGE>|registry.digitalocean.com/helloprofile/communication:'${TAG}'|' $GITHUB_WORKSPACE/kubernetes/deployment.yml
+
+    - name: Save DigitalOcean kubeconfig with short-lived credentials
+      run: doctl kubernetes cluster kubeconfig save --expiry-seconds 600 k8s-helloprofile-test
+
+    - name: Deploy secrets to DigitalOcean Kubernetes
+      run: kubectl apply -f $GITHUB_WORKSPACE/kubernetes/secrets.yml
+    - name: Deploy pod to DigitalOcean Kubernetes
+      run: kubectl apply -f $GITHUB_WORKSPACE/kubernetes/deployment.yml
+    - name: Deploy service to DigitalOcean Kubernetes
+      run: kubectl apply -f $GITHUB_WORKSPACE/kubernetes/service.yml
+      
+
+    - name: Verify deployment
+      run: kubectl rollout status deployment/communication
